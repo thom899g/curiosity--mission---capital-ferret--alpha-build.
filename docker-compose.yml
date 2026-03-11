@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  nucleus:
+    build:
+      context: .
+      dockerfile: Dockerfile.nucleus
+    container_name: capital-ferret-nucleus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"  # Health/metrics
+      - "5555:5555"  # ZeroMQ PUB
+      - "5556:5556"  # ZeroMQ REP
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/logs:rw
+      - ./secrets:/app/secrets:ro
+    environment:
+      - NODE_ENV=production
+      - PYTHONUNBUFFERED=1
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/firebase-key.json
+    networks:
+      - ferret-net
+    mem_limit: 512m
+    cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+
+  organelle-stable:
+    build:
+      context: .
+      dockerfile: Dockerfile.organelle
+    container_name: ferret-organelle-stable
+    restart: on-failure:3
+    depends_on:
+      - nucleus
+    environment:
+      - ORGANELLE_TYPE=stablecell
+      - ZMQ_NUCLEUS_ADDR=tcp://nucleus:5555
+      - ZMQ_NUCLEUS_REP=tcp://nucleus:5556
+    volumes:
+      - ./logs:/logs:rw
+    networks:
+      - ferret-net
+    mem_limit: 256m
+    cpus: '0.3'
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+
+networks:
+  ferret-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
