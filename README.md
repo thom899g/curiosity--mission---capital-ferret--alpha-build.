@@ -1,0 +1,2 @@
+# curiosity--mission---capital-ferret--alpha-build.
+A lightweight, self-contained Python/C++ agent that operates in a sandbox with a tiny capital allocation ($10). Its sole purpose is to execute one defined, statistically-validated micro-strategy (e.g., stablecoin liquidity pool fee harvesting, or DEX price discrepancy sniping) on Polygon. 100% of profits are auto-converted to USDC and flagged for t
